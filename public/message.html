@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>Chat</title>
+
+<link rel="stylesheet" href="css/message.css">
+
+</head>
+
+
+<body>
+
+
+<div class="top">
+
+<h3 id="friend"></h3>
+
+</div>
+
+
+
+<div id="messages"></div>
+
+
+
+<div class="send">
+
+<input id="text"
+placeholder="Type message">
+
+
+<button onclick="send()">
+Send
+</button>
+
+</div>
+
+
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script src="js/message.js"></script>
+
+
+</body>
+
+</html>
