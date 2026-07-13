@@ -1,39 +1,52 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
+
+const db = require("./database");
 const auth = require("./auth");
 
-require("./database");
-
 const app = express();
+
 const server = http.createServer(app);
 
 const io = new Server(server);
 
+
 const PORT = process.env.PORT || 3000;
+
 
 app.use(express.static("public"));
 
-app.get("/health", (req, res) => {
-    res.send("OK");
-});
 
 let onlineUsers = {};
 
-io.on("connection", (socket) => {
 
-    socket.on("register", async (username) => {
 
-        try {
+io.on("connection", (socket)=>{
+
+
+    console.log("Socket connected:", socket.id);
+
+
+
+    socket.on("register", async(username)=>{
+
+
+        try{
+
 
             const user = await auth.createUser(username);
 
+
             socket.username = username;
+
 
             onlineUsers[username] = socket.id;
 
 
+
             socket.emit("registered", user);
+
 
 
             io.emit(
@@ -42,22 +55,28 @@ io.on("connection", (socket) => {
             );
 
 
-            console.log("Online:", onlineUsers);
+
+            console.log(username,"online");
 
 
-        } catch(err){
 
-            console.log(err);
+        }catch(error){
+
+            console.log(error);
 
         }
+
 
     });
 
 
 
+
     socket.on("sendMessage",(data)=>{
 
-        console.log("Message:", data);
+
+        console.log("Message received:",data);
+
 
 
         db.run(
@@ -74,29 +93,28 @@ io.on("connection", (socket) => {
         );
 
 
-        // send to receiver
-        let receiverSocket =
+
+        const receiverSocket =
         onlineUsers[data.receiver];
+
 
 
         if(receiverSocket){
 
-            io.to(receiverSocket).emit(
+
+            io.to(receiverSocket)
+            .emit(
                 "receiveMessage",
                 data
             );
 
+
         }
 
 
-        // send back to sender
-        socket.emit(
-            "receiveMessage",
-            data
-        );
-
 
     });
+
 
 
 
@@ -104,6 +122,7 @@ io.on("connection", (socket) => {
 
 
         if(socket.username){
+
 
             delete onlineUsers[socket.username];
 
@@ -113,57 +132,28 @@ io.on("connection", (socket) => {
                 Object.keys(onlineUsers)
             );
 
+
         }
+
+
+        console.log("Disconnected");
 
 
     });
 
 
-});
-server.listen(PORT, () => {
-    console.log("Server running on port " + PORT);
-});
-
-const db = require("./database");
-
-
-io.on("connection",(socket)=>{
-
-
-socket.on("joinChat",(username)=>{
-
-socket.username=username;
 
 });
 
 
 
-socket.on("sendMessage",(data)=>{
+
+server.listen(PORT,()=>{
 
 
-const {sender,receiver,message}=data;
-
-
-
-db.run(
-
-`INSERT INTO messages
-(sender,receiver,message)
-VALUES(?,?,?)`,
-
-[sender,receiver,message]
-
+console.log(
+"Server running on port "+PORT
 );
-
-
-
-io.to(onlineUsers[receiver])
-.emit("receiveMessage",data);
-
-
-
-});
-
 
 
 });
