@@ -3,19 +3,30 @@ const path = require("path");
 const fs = require("fs");
 
 const dbDir = path.join(__dirname, "database");
-
 if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true });
 }
 
-const dbPath = path.join(dbDir, "chat.db");
+const db = new sqlite3.Database(path.join(dbDir, "chat.db"));
 
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error("Database Error:", err.message);
-    } else {
-        console.log("Connected to SQLite database");
-    }
+db.serialize(() => {
+    db.run(`
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            profile TEXT DEFAULT ''
+        )
+    `);
+
+    db.run(`
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sender TEXT,
+            receiver TEXT,
+            message TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
 });
 
 module.exports = db;
