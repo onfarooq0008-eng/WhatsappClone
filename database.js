@@ -19,14 +19,21 @@ db.serialize(() => {
     `);
 
     db.run(`
-        CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            sender TEXT,
-            receiver TEXT,
-            message TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    `);
+CREATE TABLE IF NOT EXISTS messages (
+
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+sender TEXT NOT NULL,
+
+receiver TEXT NOT NULL,
+
+message TEXT NOT NULL,
+
+created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+
+)
+`);
+    
 });
 
 module.exports = db;
