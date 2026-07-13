@@ -18,7 +18,10 @@ app.get("/health", (req, res) => {
     res.send("OK");
 });
 
+let onlineUsers = {};
+
 io.on("connection", (socket) => {
+
 
     socket.on("register", async (username) => {
 
@@ -28,17 +31,49 @@ io.on("connection", (socket) => {
 
             socket.username = username;
 
+
+            onlineUsers[username] = socket.id;
+
+
             socket.emit("registered", user);
+
+
+            // send users list to everyone
+            io.emit(
+                "users",
+                Object.keys(onlineUsers)
+            );
+
 
             console.log(username + " joined");
 
-        } catch (err) {
+
+        } catch(err){
 
             console.log(err);
 
         }
 
     });
+
+
+
+    socket.on("disconnect",()=>{
+
+        if(socket.username){
+
+            delete onlineUsers[socket.username];
+
+
+            io.emit(
+                "users",
+                Object.keys(onlineUsers)
+            );
+
+        }
+
+    });
+
 
 });
 
