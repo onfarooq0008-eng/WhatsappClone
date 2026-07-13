@@ -80,3 +80,47 @@ io.on("connection", (socket) => {
 server.listen(PORT, () => {
     console.log("Server running on port " + PORT);
 });
+
+const db = require("./database");
+
+
+io.on("connection",(socket)=>{
+
+
+socket.on("joinChat",(username)=>{
+
+socket.username=username;
+
+});
+
+
+
+socket.on("sendMessage",(data)=>{
+
+
+const {sender,receiver,message}=data;
+
+
+
+db.run(
+
+`INSERT INTO messages
+(sender,receiver,message)
+VALUES(?,?,?)`,
+
+[sender,receiver,message]
+
+);
+
+
+
+io.to(onlineUsers[receiver])
+.emit("receiveMessage",data);
+
+
+
+});
+
+
+
+});
