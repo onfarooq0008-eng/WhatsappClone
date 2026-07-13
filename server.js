@@ -22,7 +22,6 @@ let onlineUsers = {};
 
 io.on("connection", (socket) => {
 
-
     socket.on("register", async (username) => {
 
         try {
@@ -31,21 +30,19 @@ io.on("connection", (socket) => {
 
             socket.username = username;
 
-
             onlineUsers[username] = socket.id;
 
 
             socket.emit("registered", user);
 
 
-            // send users list to everyone
             io.emit(
                 "users",
                 Object.keys(onlineUsers)
             );
 
 
-            console.log(username + " joined");
+            console.log("Online:", onlineUsers);
 
 
         } catch(err){
@@ -58,7 +55,53 @@ io.on("connection", (socket) => {
 
 
 
+    socket.on("sendMessage",(data)=>{
+
+        console.log("Message:", data);
+
+
+        db.run(
+            `
+            INSERT INTO messages
+            (sender,receiver,message)
+            VALUES(?,?,?)
+            `,
+            [
+                data.sender,
+                data.receiver,
+                data.message
+            ]
+        );
+
+
+        // send to receiver
+        let receiverSocket =
+        onlineUsers[data.receiver];
+
+
+        if(receiverSocket){
+
+            io.to(receiverSocket).emit(
+                "receiveMessage",
+                data
+            );
+
+        }
+
+
+        // send back to sender
+        socket.emit(
+            "receiveMessage",
+            data
+        );
+
+
+    });
+
+
+
     socket.on("disconnect",()=>{
+
 
         if(socket.username){
 
@@ -72,11 +115,11 @@ io.on("connection", (socket) => {
 
         }
 
+
     });
 
 
 });
-
 server.listen(PORT, () => {
     console.log("Server running on port " + PORT);
 });
