@@ -1,6 +1,7 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
+const auth = require("./auth");
 
 require("./database");
 
@@ -18,7 +19,27 @@ app.get("/health", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-    console.log("User Connected");
+
+    socket.on("register", async (username) => {
+
+        try {
+
+            const user = await auth.createUser(username);
+
+            socket.username = username;
+
+            socket.emit("registered", user);
+
+            console.log(username + " joined");
+
+        } catch (err) {
+
+            console.log(err);
+
+        }
+
+    });
+
 });
 
 server.listen(PORT, () => {
