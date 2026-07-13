@@ -10,7 +10,6 @@ document.getElementById("friend").innerHTML=friend;
 
 
 
-socket.emit("joinChat",me);
 
 
 
